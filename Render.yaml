@@ -2,8 +2,14 @@ services:
   - type: web
     name: operacao-raghnild
     env: python
+    plan: free
     buildCommand: ""
     startCommand: python bot.py
     envVars:
-      - key: PORT
-        value: 10000
+      - key: BOT_TOKEN
+        value: SEU_TOKEN_DO_BOT_AQUI
+      - key: RENDER_EXTERNAL_URL
+        fromService:
+          type: web
+          name: operacao-raghnild
+          property: url
