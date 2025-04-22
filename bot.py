@@ -84,7 +84,7 @@ async def main():
     application.add_handler(CommandHandler("SalaVIP", sala_vip))
     application.add_handler(CommandHandler("SalaVIP2", sala_vip_parte2))
     application.add_handler(CommandHandler("Final", final))
-    application.add_handler(CommandHandler("Pontuação", pontuacao_atual))
+    application.add_handler(CommandHandler("Pontuacao", pontuacao_atual))
 
     await application.run_polling()
 
