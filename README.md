@@ -1,3 +1,21 @@
-# Bot Telegram - Operação Raghnild
+# Bot Narrador - Operação Raghnild
 
-Um bot narrativo e interativo de missão baseado em máfias rivais, espionagem e ação. Desenvolvido para Telegram com Python.
+Este é um bot interativo de Telegram com narrativa gamificada para a missão Operação Raghnild.
+
+### Comandos:
+
+- /start
+- /introducao
+- /cofre1
+- /cofre2
+- /salavip1
+- /salavip2
+- /fuga
+
+### Sistema de rolagem:
+
+- /roll_outfit
+- /roll_camorra
+- /roll_famiglia
+
+Desenvolvido em Flask. Pronto para deploy no Render
