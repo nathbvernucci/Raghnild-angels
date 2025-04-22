@@ -1,161 +1,79 @@
-import logging
+import os
+import json
+from flask import Flask, request
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
-import asyncio
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    ContextTypes,
+    MessageHandler,
+    filters,
+)
 
-# Configuração de logging
-logging.basicConfig(level=logging.INFO)
+# Pega o token e a URL do webhook
+TOKEN = os.environ.get("BOT_TOKEN")
+WEBHOOK_URL = os.environ.get("WEBHOOK_URL")  # ex: 'https://seu-app.onrender.com/webhook'
 
-# Pontuação oculta
-pontuacao_mafias = {
-    'Outfit': 0,
-    'Camorra': 0,
-    'Famiglia': 0
-}
+app = Flask(__name__)
+application = ApplicationBuilder().token(TOKEN).build()
 
-# Funções de comandos
+# Exemplo de pontuação simulada
+pontuacoes = {}
+
+# Comandos
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    texto = """
-Copenhague, Dinamarca.
-Você acaba de pousar. A névoa cobre o teto do Palácio Marienborg, onde o maior leilão clandestino da Europa está prestes a começar.
+    user = update.effective_user
+    await update.message.reply_text(f"Bem-vindo, {user.first_name}! Missão iniciada.")
+    # Pode colocar Cena 1 aqui também
 
-As três máfias mais perigosas do submundo americano desembarcaram na Europa com o mesmo objetivo:
-• Roubar a Lança de Salomão, símbolo de poder oculto e a relíquia mais requisitada do leilão. 
-• Sequestrar o Embaixador Rashid al-Hariri, peça-chave de uma nova era geopolítica.
+async def pontuacao(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = str(update.effective_user.id)
+    pontos = pontuacoes.get(user_id, 0)
+    await update.message.reply_text(f"Sua pontuação atual: {pontos} pontos.")
 
-Quem controlar um domina o mercado negro. 
-Quem controlar os dois garante uma nova aliança e poder no submundo. 
+# Cena exemplo
+async def cena2_parte2(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "Cena 2 - Parte 2:\n\n"
+        "Enquanto os mafiosos se encaram com armas apontadas, o som da sirene da polícia começa a ecoar ao fundo. "
+        "Você precisa decidir rapidamente: confrontar as máfias ou escapar com a lança?"
+    )
 
-Quem é você nessa guerra?
-Escolha a sua máfia:
-• Outfit
-• Camorra
-• Famiglia
-"""
-    await update.message.reply_text(texto)
+# Fallback para mensagens comuns
+async def fallback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Comando não reconhecido. Use /start para começar.")
 
-async def cofre(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    texto = """
-[Cena 2 – Parte 1: Cofre Subterrâneo]
+# Adiciona os handlers
+application.add_handler(CommandHandler("start", start))
+application.add_handler(CommandHandler("pontuacao", pontuacao))
+application.add_handler(CommandHandler("cena2_parte2", cena2_parte2))
+application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, fallback))
 
-22h00.
+# Rota raiz só pra teste
+@app.route('/')
+def index():
+    return 'Bot está rodando!'
 
-O leilão começa. A Lança de Salomão será exibida em minutos.  
-Enquanto os convidados brindam champanhe, agentes infiltrados das três máfias acessam corredores restritos.
+# Webhook
+@app.route('/webhook', methods=['POST'])
+async def webhook():
+    if request.method == "POST":
+        data = request.get_json(force=True)
+        update = Update.de_json(data, application.bot)
+        await application.process_update(update)
+        return "ok"
+    return "método não permitido", 405
 
-Sensores, armadilhas, códigos.  
-Três caminhos, três planos distintos.
-
-• Outfit hackeia o sistema de vigilância e desativa alarmes.  
-• Camorra seduz um funcionário para obter o acesso biométrico.  
-• Famiglia planta explosivos de precisão nos dutos de ventilação.
-
-A tensão cresce. O cofre se aproxima.
-
-[Cena 2 – Parte 2: Confronto no Cofre]
-
-Portas blindadas se abrem. A Lança brilha no pedestal.  
-Mas há um problema: todos chegaram ao mesmo tempo.
-
-Tiros. Luzes piscam. Sirenes soam.  
-Cada máfia tenta garantir a relíquia enquanto lida com a presença das outras duas.
-
-• Outfit pega a lança e tenta fugir pelos túneis.  
-• Camorra tenta explodir a saída secundária.  
-• Famiglia bloqueia a escada com fogo.
-
-Quem sai com a lança? Quem fica ferido?  
-O caos decide.
-
-(Pontuação aplicada conforme a escolha de cada máfia.)
-"""
-    await update.message.reply_text(texto)
-    pontuacao_mafias["Outfit"] += 2
-    pontuacao_mafias["Camorra"] += 1
-    pontuacao_mafias["Famiglia"] += 3
-
-async def salavip(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    texto = """
-[Cena 3 – Parte 1: Sala VIP]
-
-O Embaixador Rashid al-Hariri faz um brinde com magnatas russos.  
-Ao redor, agentes da Interpol disfarçados e seguranças armados.
-
-As máfias se preparam.
-
-• Outfit usa gás sonífero no sistema de ar.  
-• Camorra invade como convidados e causa tumulto.  
-• Famiglia sequestra um assessor e troca de identidade.
-
-O embaixador é isolado. Mas a resposta é rápida.
-
-[Cena 3 – Parte 2: Explosão de Conflito]
-
-Alarmes tocam. As luzes se apagam.
-
-• Outfit é descoberta, mas já tem o embaixador sedado.  
-• Camorra troca tiros com seguranças.  
-• Famiglia domina a sala de controle e bloqueia as portas.
-
-O tempo corre.  
-Três mafias com um refém valioso.  
-Só uma vai escapar com ele.
-
-(Cena 3 – Parte 3: Fuga)
-
-• Outfit foge de helicóptero do terraço.  
-• Camorra escapa pelo subsolo, usando um barco.  
-• Famiglia aciona um carro blindado no portão principal.
-
-Drones seguem cada rota. A perseguição é cinematográfica.
-
-(Pontuação secreta aplicada.)
-"""
-    await update.message.reply_text(texto)
-    pontuacao_mafias["Outfit"] += 3
-    pontuacao_mafias["Camorra"] += 2
-    pontuacao_mafias["Famiglia"] += 1
-
-async def final(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    texto = """
-[Final da Missão – O Destino]
-
-A noite termina com helicópteros militares sobrevoando o palácio.  
-O mundo amanhece com manchetes de um atentado diplomático.
-
-Mas... alguém conseguiu os dois alvos?
-
-A máfia com mais pontos detém:
-• A Lança de Salomão
-• O Embaixador Rashid al-Hariri
-
-Um novo império do submundo será fundado.
-
-A guerra mal começou.
-"""
-    await update.message.reply_text(texto)
-
-async def pontuacao_atual(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    texto = "**Pontuação Final (oculta até o final da missão):**\n"
-    for mafia, pontos in pontuacao_mafias.items():
-        texto += f"{mafia}: {pontos} pontos\n"
-    await update.message.reply_text(texto)
-
-# Execução principal
-async def main():
-    application = ApplicationBuilder().token("7970673691:AAEQxRN8EBJsMoF2ANYtEpNR8YHZwhjr6zQ").build()
-
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("cofre", cofre))
-    application.add_handler(CommandHandler("salavip", salavip))
-    application.add_handler(CommandHandler("final", final))
-    application.add_handler(CommandHandler("pontuacao", pontuacao_atual))
-
-    await application.run_polling()
-
-import asyncio
+# Configura o webhook assim que o app inicia
+async def setup_webhook():
+    await application.bot.delete_webhook()
+    await application.bot.set_webhook(url=WEBHOOK_URL)
 
 if __name__ == '__main__':
-    import nest_asyncio
-    nest_asyncio.apply()  # evita o erro de "loop já em execução"
+    import asyncio
+
+    async def main():
+        await setup_webhook()
+        app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
     asyncio.run(main())
