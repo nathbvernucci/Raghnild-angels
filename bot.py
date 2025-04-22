@@ -177,6 +177,24 @@ def send_fuga(message):
 
     bot.reply_to(message, fuga + final)
 
+@bot.message_handler(commands=['pontuacaofinal'])
+def pontuacao_final(message):
+    chat_id = message.chat.id
+    if chat_id not in pontuacoes:
+        bot.send_message(chat_id, "Nenhuma pontuação registrada para este jogo.")
+        return
+
+    ranking = sorted(pontuacoes[chat_id].items(), key=lambda x: x[1], reverse=True)
+    resultado = "*Resultado Final da Operação Raghnild:*\n\n"
+    medalhas = ["1º lugar", "2º lugar", "3º lugar"]
+
+    for i, (mafia, pontos) in enumerate(ranking):
+        resultado += f"{medalhas[i]}: *{mafia}* — {pontos} pontos\n"
+
+    resultado += f"\n*Domínio no submundo garantido por:* *{ranking[0][0]}*"
+
+    bot.send_message(chat_id, resultado, parse_mode='Markdown')
+
 # Flask
 @app.route("/", methods=["POST"])
 def webhook():
