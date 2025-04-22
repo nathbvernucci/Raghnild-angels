@@ -155,11 +155,7 @@ async def main():
 
 import asyncio
 
-if __name__ == "__main__":
-    try:
-        asyncio.get_event_loop().run_until_complete(main())
-    except RuntimeError:
-        # Se o loop já estiver rodando, usa esse fallback
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(main())
+if __name__ == '__main__':
+    import nest_asyncio
+    nest_asyncio.apply()  # evita o erro de "loop já em execução"
+    asyncio.run(main())
