@@ -1,79 +1,44 @@
-import os
-import json
 from flask import Flask, request
-from telegram import Update
-from telegram.ext import (
-    ApplicationBuilder,
-    CommandHandler,
-    ContextTypes,
-    MessageHandler,
-    filters,
-)
+import requests
+import random
 
-# Pega o token e a URL do webhook
-TOKEN = os.environ.get("BOT_TOKEN")
-WEBHOOK_URL = os.environ.get("WEBHOOK_URL")  # ex: 'https://seu-app.onrender.com/webhook'
+TOKEN = "7970673691:AAEQxRN8EBJsMoF2ANYtEpNR8YHZwhjr6zQ"
+URL = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
 
 app = Flask(__name__)
-application = ApplicationBuilder().token(TOKEN).build()
 
-# Exemplo de pontuação simulada
-pontuacoes = {}
+def send_message(chat_id, text):
+    requests.post(URL, json={"chat_id": chat_id, "text": text})
 
-# Comandos
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = update.effective_user
-    await update.message.reply_text(f"Bem-vindo, {user.first_name}! Missão iniciada.")
-    # Pode colocar Cena 1 aqui também
-
-async def pontuacao(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = str(update.effective_user.id)
-    pontos = pontuacoes.get(user_id, 0)
-    await update.message.reply_text(f"Sua pontuação atual: {pontos} pontos.")
-
-# Cena exemplo
-async def cena2_parte2(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "Cena 2 - Parte 2:\n\n"
-        "Enquanto os mafiosos se encaram com armas apontadas, o som da sirene da polícia começa a ecoar ao fundo. "
-        "Você precisa decidir rapidamente: confrontar as máfias ou escapar com a lança?"
-    )
-
-# Fallback para mensagens comuns
-async def fallback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Comando não reconhecido. Use /start para começar.")
-
-# Adiciona os handlers
-application.add_handler(CommandHandler("start", start))
-application.add_handler(CommandHandler("pontuacao", pontuacao))
-application.add_handler(CommandHandler("cena2_parte2", cena2_parte2))
-application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, fallback))
-
-# Rota raiz só pra teste
-@app.route('/')
-def index():
-    return 'Bot está rodando!'
-
-# Webhook
-@app.route('/webhook', methods=['POST'])
-async def webhook():
-    if request.method == "POST":
-        data = request.get_json(force=True)
-        update = Update.de_json(data, application.bot)
-        await application.process_update(update)
-        return "ok"
-    return "método não permitido", 405
-
-# Configura o webhook assim que o app inicia
-async def setup_webhook():
-    await application.bot.delete_webhook()
-    await application.bot.set_webhook(url=WEBHOOK_URL)
-
-if __name__ == '__main__':
-    import asyncio
-
-    async def main():
-        await setup_webhook()
-        app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
-
-    asyncio.run(main())
+@app.route("/", methods=["POST"])
+def webhook():
+    data = request.get_json()
+    if "message" in data and "text" in data["message"]:
+        chat_id = data["message"]["chat"]["id"]
+        text = data["message"]["text"]
+        if text == "/start":
+            send_message(chat_id, "Bem-vindo à Operação Raghnild.")
+        elif text == "/introducao":
+            send_message(chat_id, "Copenhague, 23h17. Três máfias. Um objetivo.")
+        elif text == "/cofre1":
+            send_message(chat_id, "Você está diante do Cofre Antigo...")
+        elif text == "/cofre2":
+            send_message(chat_id, "O segundo cofre está trancado com mais segurança.")
+        elif text == "/salavip1":
+            send_message(chat_id, "Você entrou na Sala VIP. As câmeras giram.")
+        elif text == "/salavip2":
+            send_message(chat_id, "Sala VIP 2: silêncio absoluto... algo está errado.")
+        elif text == "/fuga":
+            send_message(chat_id, "Hora da fuga. A polícia está a caminho!")
+        elif text == "/roll_outfit":
+            rolagem = random.randint(1, 6)
+            send_message(chat_id, f"Outfit rolou um dado: {rolagem}")
+        elif text == "/roll_camorra":
+            rolagem = random.randint(1, 6)
+            send_message(chat_id, f"Camorra rolou um dado: {rolagem}")
+        elif text == "/roll_famiglia":
+            rolagem = random.randint(1, 6)
+            send_message(chat_id, f"Famiglia rolou um dado: {rolagem}")
+        else:
+            send_message(chat_id, "Comando não reconhecido.")
+    return {"ok": True}
