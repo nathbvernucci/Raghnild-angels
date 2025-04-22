@@ -42,3 +42,15 @@ def webhook():
         else:
             send_message(chat_id, "Comando não reconhecido.")
     return {"ok": True}
+    
+    # Adicione isso no final do bot.py
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return 'Bot Telegram Operação Raghnild está rodando!'
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=10000)
