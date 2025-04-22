@@ -7,7 +7,7 @@ services:
     startCommand: python bot.py
     envVars:
       - key: BOT_TOKEN
-        value: SEU_TOKEN_DO_BOT_AQUI
+        value: 7970673691:AAEQxRN8EBJsMoF2ANYtEpNR8YHZwhjr6zQ
       - key: RENDER_EXTERNAL_URL
         fromService:
           type: web
